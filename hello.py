@@ -1,10 +1,10 @@
 from flask import Flask
 from markupsafe import escape
 from datetime import datetime
+import pytz  
 
 app = Flask(__name__)
 
-# Layout simples para reaproveitar cabeçalho/estilo
 def layout(body_html: str) -> str:
     return f"""<!doctype html>
 <html lang="en">
@@ -33,9 +33,11 @@ def layout(body_html: str) -> str:
 
 @app.route("/")
 def index():
-    now = datetime.now()
+    tz = pytz.timezone("America/Sao_Paulo")
+    now = datetime.now(tz)
     now_readable = now.strftime("%B %d, %Y %I:%M %p")
     now_iso = now.isoformat()
+
     body = f"""
       <h1>Hello World!</h1>
       <hr>
@@ -46,7 +48,7 @@ def index():
         function updateAgo() {{
           const diff = Date.now() - renderedAt.getTime();
           const mins = Math.floor(diff/60000);
-          const text = mins === 0 ? 'moments' : (mins === 1 ? '1 minute' : mins + ' minutes');
+          const text = mins <= 0 ? 'moments' : (mins === 1 ? '1 minute' : mins + ' minutes');
           document.getElementById('ago').textContent = text;
         }}
         updateAgo();
@@ -55,7 +57,7 @@ def index():
     """
     return layout(body)
 
-@app.route("/user/Rafael%20Tonegi")
+@app.route("/user/<path:name>")
 def greet(name):
     safe_name = escape(name)
     body = f"<h1>Hello, {safe_name}!</h1><hr>"
